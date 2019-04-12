@@ -40,7 +40,7 @@ class FilepondServiceProvider extends ServiceProvider
      */
     public function register()
     {
-		$this->mergeConfigFrom(__DIR__.'/../config/filepond.php', 'filepond');
+        $this->mergeConfigFrom(__DIR__.'/../config/filepond.php', 'filepond');
 
         $this->app->singleton('filepond', function () {
             return new Filepond;

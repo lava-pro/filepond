@@ -4,6 +4,7 @@ namespace Lava\Filepond\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Lava\Filepond\Facades\Filepond;
 
 class TestController extends Controller
 {
@@ -14,9 +15,18 @@ class TestController extends Controller
 
     public function handler(Request $request)
     {
-        // Handle request...
+        $field = Filepond::getField();
 
-        return redirect('filepond');
+        if (! $images = $request->input($field)) {
+            return response('', 204);
+        }
+
+        if ($results = Filepond::filesProcessing($images)) {
+            return implode(',', $results);
+        }
+        return 'Empty...';
+
+        //return redirect('filepond');
     }
 
 }

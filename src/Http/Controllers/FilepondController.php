@@ -20,7 +20,7 @@ class FilepondController extends Controller
      */
     public function upload(Request $request)
     {
-        $field = Filepond::options('field');
+        $field = Filepond::getField();
 
         $data = [
             'files' => $request->file($field),
