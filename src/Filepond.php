@@ -129,10 +129,11 @@ class Filepond
      * Moves files directory to persistent place
      * Save the uploading file information in databse
      *
-     * @param  array  $keys Files IDs
-     * @return integer Row id
+     * @param  array  $keys  Files IDs
+     * @param  array  $extra Extra data
+     * @return integer Entry id
      */
-    public function filesProcessing(array $keys = [])
+    public function filesProcessing(array $keys = [], array $extra = [])
     {
         $results = [];
 
@@ -148,12 +149,15 @@ class Filepond
                 $modelName = ucfirst($this->type);
                 $model = "Lava\\Filepond\\Models\\{$modelName}";
                 $entry = new $model;
-                $entry->transfer_key = $key;
-                $entry->file_path = $this->generateFilePath();
-                $entry->extension = $matadata['ext']  ?? '';
-                $entry->mime_type = $matadata['mime'] ?? '';
-                $entry->base_name = $matadata['name'] ?? '';
-                $entry->file_size = $matadata['size'] ?? '';
+                $entry->transfer_key  = $key;
+                $entry->file_path     = $this->generateFilePath();
+                $entry->user_id       = $extra['user_id']  ?? null;
+                $entry->resource_id   = $extra['res_id']   ?? null;
+                $entry->resource_name = $extra['res_name'] ?? null;
+                $entry->extension     = $matadata['ext']   ?? null;
+                $entry->mime_type     = $matadata['mime']  ?? null;
+                $entry->base_name     = $matadata['name']  ?? null;
+                $entry->file_size     = $matadata['size']  ?? null;
                 $entry->save();
 
                 $results[] = $entry->id;
