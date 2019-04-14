@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <title>FilePond Index</title>
+    <title>Test | Add</title>
     <!-- Get FilePond and FilePond image preview plugin styles from a CDN -->
     <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
@@ -15,7 +15,7 @@
     </style>
 </head>
 <body>
-    <form action="filepond/handler" method="post" enctype="multipart/form-data">
+    <form action="filepond/add" method="post" enctype="multipart/form-data">
         <input type="file" name="filepond[]" multiple>
         <button type="submit">Submit</button>
     </form>
@@ -46,6 +46,8 @@
     FilePond.setOptions({
         // Maximum allowed file size
         maxFileSize: '5MB',
+        // Maximum files count
+        maxFiles: 10,
         // Crop the image to a 1:1 ratio
         imageCropAspectRatio: '1.5:1',
         // Resize the image
@@ -67,6 +69,11 @@
     });
     // Turn a file input into a file pond
     var pond = FilePond.create(document.querySelector('input[type="file"]'));
+
+// attributes have been set to pond options
+console.log(pond.name);  // 'filepond'
+console.log(pond.maxFiles); // 10
+console.log(pond.required); // true
     </script>
 </body>
 </html>

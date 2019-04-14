@@ -1,7 +1,8 @@
 <?php
 
-Route::get('/', 'TestController@index');
-Route::post('handler', 'TestController@handler');
+Route::get('/', 'TestController@indexAction');
+Route::post('add', 'TestController@addAction');
+Route::get('list/{id}', 'TestController@listAction');
 
 Route::post('upload',      ['as' => '.upload', 'uses'  => 'FilepondController@upload']);
 Route::delete('revert',    ['as' => '.revert', 'uses'  => 'FilepondController@revert']);

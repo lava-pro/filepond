@@ -2,6 +2,7 @@
 
 namespace Lava\Filepond;
 
+use stdClass;
 use DateTime;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -146,25 +147,70 @@ class Filepond
             {
                 Storage::move($tempDir, $persDir);
                 $matadata  = $this->readFileMetadata($persDir);
-                $modelName = ucfirst($this->type);
-                $model = "Lava\\Filepond\\Models\\{$modelName}";
-                $entry = new $model;
-                $entry->transfer_key  = $key;
-                $entry->file_path     = $this->generateFilePath();
-                $entry->user_id       = $extra['user_id']  ?? null;
-                $entry->resource_id   = $extra['res_id']   ?? null;
-                $entry->resource_name = $extra['res_name'] ?? null;
-                $entry->extension     = $matadata['ext']   ?? null;
-                $entry->mime_type     = $matadata['mime']  ?? null;
-                $entry->base_name     = $matadata['name']  ?? null;
-                $entry->file_size     = $matadata['size']  ?? null;
-                $entry->save();
+                $model     = $this->getModel();
+                $model->transfer_key  = $key;
+                $model->file_path     = $this->generateFilePath();
+                $model->user_id       = $extra['user_id']  ?? null;
+                $model->batch_id      = $extra['batch_id'] ?? null;
+                $model->resource      = $extra['resource'] ?? null;
+                $model->extension     = $matadata['ext']   ?? null;
+                $model->mime_type     = $matadata['mime']  ?? null;
+                $model->base_name     = $matadata['name']  ?? null;
+                $model->file_size     = $matadata['size']  ?? null;
+                $model->save();
 
-                $results[] = $entry->id;
+                $results[] = $model->id;
             }
         }
 
-        return $results;
+        // return $results;
+        return $extra['batch_id'];
+    }
+
+    /**
+     * Get the batch thumbs
+     *
+     * @param  int $id Batch ID
+     * @return array
+     */
+    public function batchThumbs(int $id)
+    {
+        $model = $this->getModel();
+        $images = [];
+
+        if ($entries = $model->findByBatchId($id))
+        {
+            foreach ($entries as $entry)
+            {
+                $fileName = '/thumb.' . $entry->extension;
+                $filePath = $entry->file_path . $fileName;
+                $publicPath = 'public/' . $filePath;
+
+                if (! Storage::exists($publicPath)) {
+                    $sourcePath = $this->options['pudn'] . '/' . $entry->transfer_key . $fileName;
+                    Storage::copy($sourcePath, $publicPath);
+                }
+
+                $image = new stdClass;
+                $image->url = Storage::url($filePath);
+                $image->title = $entry->base_name;
+                $images[] = $image;
+            }
+        }
+
+        return $images;
+    }
+
+    /**
+     * Get current Model
+     *
+     * @return object
+     */
+    protected function getModel()
+    {
+        $modelName = ucfirst($this->type);
+        $modelStr  = "Lava\\Filepond\\Models\\{$modelName}";
+        return new $modelStr;
     }
 
     /**

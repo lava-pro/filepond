@@ -9,12 +9,23 @@ use Illuminate\Support\Facades\DB;
 
 class TestController extends Controller
 {
-    public function index()
+    /**
+     * Show form
+     *
+     * @return View
+     */
+    public function indexAction()
     {
-        return view('filepond::test');
+        return view('filepond::test.add');
     }
 
-    public function handler(Request $request)
+    /**
+     * Add images to resource
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function addAction(Request $request)
     {
         $field = Filepond::getField();
 
@@ -23,20 +34,31 @@ class TestController extends Controller
         }
 
         $extra = [
-            // Resource Id
-            'res_id'   => DB::table('images')->max('resource_id') + 1,
-            // Resource name
-            'res_name' => 'SomeModel::class',
+            // Batch Id
+            'batch_id' => DB::table('images')->max('batch_id') + 1,
+            // Resource
+            'resource' => 'SomeModel::class',
             // User Id
             'user_id'  => rand(1, 9)
         ];
 
-        if ($results = Filepond::filesProcessing($images, $extra)) {
-            return implode(',', $results);
+        if ($id = Filepond::filesProcessing($images, $extra)) {
+            return redirect("filepond/list/$id");
         }
         return response('', 204);
+    }
 
-        //return redirect('filepond');
+    /**
+     * Images list
+     *
+     * @param  integer $id Batch ID
+     * @return mixed
+     */
+    public function listAction($id)
+    {
+        $images = Filepond::batchThumbs($id);
+
+        return view('filepond::test.list', compact('images'));
     }
 
 }

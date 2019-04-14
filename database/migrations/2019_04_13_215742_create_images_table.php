@@ -16,12 +16,12 @@ class CreateImagesTable extends Migration {
 		Schema::create('images', function(Blueprint $table)
 		{
 			$table->increments('id');
-			$table->integer('resource_id')->default(null)->index('resource_id');
-			$table->string('resource_name', 160)->default('')->index('resource_name');
-			$table->integer('user_id')->default(null)->index('resource_id');
+			$table->integer('batch_id')->default(null)->index('batch_id');
+			$table->string('resource', 160)->default('')->index('resource');
+			$table->integer('user_id')->default(null)->index('user_id');
 			$table->string('transfer_key', 60)->unique('transfer_key');
 			$table->string('file_path', 60)->default('')->unique('file_path');
-			$table->integer('order')->unsigned()->default(0);
+			$table->integer('position')->unsigned()->default(0);
 			$table->string('extension', 5)->default('');
 			$table->string('mime_type', 30)->nullable()->default('');
 			$table->string('base_name', 60)->nullable()->default('');
