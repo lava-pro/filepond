@@ -17,7 +17,7 @@
 <body>
     <form action="filepond/add" method="post" enctype="multipart/form-data">
         <input type="file" name="filepond[]" multiple>
-        <button type="submit">Submit</button>
+        <button type="submit">&nbsp; SUBMIT &nbsp;</button>
     </form>
     <!-- Babel polyfill, contains Promise -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser-polyfill.min.js"></script>

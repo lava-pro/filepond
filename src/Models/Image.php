@@ -18,4 +18,15 @@ class Image extends Model
     {
         return $this->where('batch_id', $id)->get();
     }
+
+    /**
+     * Find items by transfer keys array
+     *
+     * @param  array $keys  Transef IDs
+     * @return array
+     */
+    public function findByTransferKeys(array $keys)
+    {
+        return $this->whereIn('transfer_key', $keys)->get();
+    }
 }

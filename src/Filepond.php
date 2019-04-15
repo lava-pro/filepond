@@ -45,14 +45,15 @@ class Filepond
     }
 
     /**
-     * Handle file transfer
+     * Executes the file transfer
      *
      * @param  array  $data
      * @return string
      */
     public function fileTransfer(array $data)
     {
-        $uniqID = md5(uniqid(rand(1, 99), true));
+        $prefix = $this->getRandomString(12);
+        $uniqID = md5(uniqid($prefix, true));
         $directory = $this->options['tudn'] . '/' . $uniqID;
 
         // We are have twoo images (fullsize & resized)
@@ -79,7 +80,7 @@ class Filepond
     }
 
     /**
-     * Handle revert file transfer
+     * Reverts the file transfer
      *
      * @param  string|null $id File id string
      * @return boolean
@@ -93,28 +94,39 @@ class Filepond
     }
 
     /**
-     * Handle load local file
+     * Loads the data for requested local file
      *
-     * @param  string|null $id File id string
+     * @param  string $id File id string
      * @return mixed
      */
-    public function loadLocalFile($id = null)
+    public function loadLocalFile(string $id)
     {
         if (! $this->validateFileId($id)) {
             return false;
         }
 
-        // Test...
-        $path = '/' . $this->options['pudn'] . '/' . $id . '/' . $this->options['img_2'] . '.jpeg';
+        $directory = $this->options['pudn'] . '/' . $id;
+        $metadata  = $this->readFileMetadata($directory);
 
-        if (Storage::exists($path)) {
-            return storage_path('app') . $path;
+        $name = $metadata['name'] ?? 'unknown';
+        $ext  = $metadata['ext']  ?? 'jpeg';
+
+        $path = '/' . $this->options['pudn'] . '/' . $id . '/' . $this->options['img_2'] . '.' . $ext;
+
+        if (Storage::exists($path))
+        {
+            $data = [
+                'path' => storage_path('app') . $path,
+                'name' => $name,
+            ];
+
+            return $data;
         }
         return false;
     }
 
     /**
-     * Handle restore file transfer
+     * Restores the file transfer
      *
      * @param  string|null $id File id string
      * @return mixed
@@ -127,14 +139,14 @@ class Filepond
     }
 
     /**
-     * Moves files directory to persistent place
-     * Save the uploading file information in databse
+     * Move files from temp directory to persists
+     * Save files data in database
      *
-     * @param  array  $keys  Files IDs
-     * @param  array  $extra Extra data
-     * @return integer Entry id
+     * @param  array  $keys   File transfer keys
+     * @param  array  $extra  Extra data
+     * @return array|integer
      */
-    public function filesProcessing(array $keys = [], array $extra = [])
+    public function storeFiles(array $keys, array $extra)
     {
         $results = [];
 
@@ -146,8 +158,8 @@ class Filepond
             if (Storage::exists($tempDir))
             {
                 Storage::move($tempDir, $persDir);
-                $matadata  = $this->readFileMetadata($persDir);
-                $model     = $this->getModel();
+                $matadata = $this->readFileMetadata($persDir);
+                $model    = $this->getModel();
                 $model->transfer_key  = $key;
                 $model->file_path     = $this->generateFilePath();
                 $model->user_id       = $extra['user_id']  ?? null;
@@ -162,7 +174,6 @@ class Filepond
                 $results[] = $model->id;
             }
         }
-
         // return $results;
         return $extra['batch_id'];
     }
@@ -175,8 +186,8 @@ class Filepond
      */
     public function batchThumbs(int $id)
     {
-        $model = $this->getModel();
         $images = [];
+        $model  = $this->getModel();
 
         if ($entries = $model->findByBatchId($id))
         {
@@ -197,8 +208,88 @@ class Filepond
                 $images[] = $image;
             }
         }
-
         return $images;
+    }
+
+    /**
+     * Get transfer keys for uploaded files
+     *
+     * @param  int $id Batch ID
+     * @return string
+     */
+    public function loadUploadedFiles(int $id)
+    {
+        $model = $this->getModel();
+
+        if ($entries = $model->findByBatchId($id))
+        {
+            $keys = [];
+            foreach ($entries as $entry) {
+                $keys[] = $entry->transfer_key;
+            }
+
+            if (count($keys))
+            {
+                $files = '';
+                foreach ($keys as $key) {
+                    $files .= "{ source: '" . $key . "', options: { type: 'local' } },";
+                }
+                return "[" . rtrim($files, ',') . "]";
+            }
+        }
+        return "[]";
+    }
+
+    /**
+     * Update batch uploaded files
+     *
+     * @param  array  $keys  Files IDs
+     * @return integer Batch id
+     */
+    public function updateUploadedFiles(array $keys)
+    {
+        $model = $this->getModel();
+
+        if (! $files = $model->findByTransferKeys($keys)) {
+            return false;
+        }
+
+        $file    = $files[0];
+        $entries = $model->findByBatchId($file->batch_id);
+        $revKeys = [];
+
+        foreach ($entries as $entry)
+        {
+            if (in_array($entry->transfer_key, $keys))
+            {
+                $revKeys[] = $entry->transfer_key;
+            }
+            else
+            {
+                $sourceDir = $this->options['pudn'] . '/' . $entry->transfer_key;
+                $publicDir = 'public/' . $entry->file_path;
+
+                if (Storage::exists($publicDir)) {
+                    Storage::deleteDirectory($publicDir);
+                }
+
+                Storage::deleteDirectory($sourceDir);
+
+                $model->destroy($entry->id);
+            }
+        }
+
+        if ($keys = array_diff($keys, $revKeys))
+        {
+            $extra = [
+                'user_id'  => $file->user_id,
+                'batch_id' => $file->batch_id,
+                'resource' => $file->resource,
+            ];
+
+            return $this->storeFiles($keys, $extra);
+        }
+        return $file->batch_id;
     }
 
     /**
@@ -221,8 +312,19 @@ class Filepond
     protected function generateFilePath()
     {
         $prefix = (new DateTime)->format('m/d/H/');
-        $suffix = substr(str_shuffle("0123456789abcdefhklmnorstuvwxz"), 0, 24);
+        $suffix = $this->getRandomString();
         return $prefix . $suffix;
+    }
+
+    /**
+     * Generates random string
+     *
+     * @param  int|integer $length
+     * @return string
+     */
+    protected function getRandomString(int $length = 24)
+    {
+        return substr(str_shuffle("0123456789abcdefhklmnorstuvwxz"), 0, $length);
     }
 
     /**

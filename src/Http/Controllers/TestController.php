@@ -42,7 +42,7 @@ class TestController extends Controller
             'user_id'  => rand(1, 9)
         ];
 
-        if ($id = Filepond::filesProcessing($images, $extra)) {
+        if ($id = Filepond::storeFiles($images, $extra)) {
             return redirect("filepond/list/$id");
         }
         return response('', 204);
@@ -54,11 +54,44 @@ class TestController extends Controller
      * @param  integer $id Batch ID
      * @return mixed
      */
-    public function listAction($id)
+    public function listAction(int $id)
     {
         $images = Filepond::batchThumbs($id);
 
-        return view('filepond::test.list', compact('images'));
+        return view('filepond::test.list', compact('images', 'id'));
+    }
+
+    /**
+     * Show editing form
+     *
+     * @param  int  $id  Batch ID
+     * @return View
+     */
+    public function editAction(int $id)
+    {
+        $files = Filepond::loadUploadedFiles($id);
+
+        return view('filepond::test.edit', compact('files'));
+    }
+
+    /**
+     * Update images list
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function updateAction(Request $request)
+    {
+        $field = Filepond::getField();
+
+        if (! $images = $request->input($field)) {
+            return response('', 204);
+        }
+
+        if ($id = Filepond::updateUploadedFiles($images)) {
+            return redirect("filepond/list/$id");
+        }
+        return response('', 204);
     }
 
 }

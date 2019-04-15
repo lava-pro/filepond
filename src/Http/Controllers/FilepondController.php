@@ -58,8 +58,10 @@ class FilepondController extends Controller
      */
     public function load($id = null)
     {
-        if ($path = Filepond::loadLocalFile($id)) {
-            return response()->file($path);
+        if ($data = Filepond::loadLocalFile($id)) {
+            return response()->file($data['path'], [
+                'Content-Disposition' => 'inline; filename="' . $data['name'] . '"',
+            ]);
         }
         return response('', 404);
     }
