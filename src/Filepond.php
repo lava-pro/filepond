@@ -45,7 +45,7 @@ class Filepond
     }
 
     /**
-     * Executes the file transfer
+     * File transfering process
      *
      * @param  array  $data
      * @return string
@@ -96,7 +96,7 @@ class Filepond
     /**
      * Loads the data for requested local file
      *
-     * @param  string $id File id string
+     * @param  string $id File transfer key
      * @return mixed
      */
     public function loadLocalFile(string $id)
@@ -123,19 +123,6 @@ class Filepond
             return $data;
         }
         return false;
-    }
-
-    /**
-     * Restores the file transfer
-     *
-     * @param  string|null $id File id string
-     * @return mixed
-     */
-    public function restoreFileTransfer($id = null)
-    {
-        if (! $this->validateFileId($id)) {
-            return false;
-        }
     }
 
     /**
@@ -241,7 +228,7 @@ class Filepond
     }
 
     /**
-     * Update batch uploaded files
+     * Update uploaded files
      *
      * @param  array  $keys  Files IDs
      * @return integer Batch id
@@ -274,7 +261,6 @@ class Filepond
                 }
 
                 Storage::deleteDirectory($sourceDir);
-
                 $model->destroy($entry->id);
             }
         }

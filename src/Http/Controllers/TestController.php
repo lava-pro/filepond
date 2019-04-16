@@ -85,7 +85,7 @@ class TestController extends Controller
         $field = Filepond::getField();
 
         if (! $images = $request->input($field)) {
-            return response('', 204);
+            return redirect("filepond");
         }
 
         if ($id = Filepond::updateUploadedFiles($images)) {

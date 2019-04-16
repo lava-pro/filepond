@@ -60,20 +60,13 @@
         imageTransformVariantsOriginalName: '',
         // upload to this server end point
         server: {
-            process: 'filepond/upload',
+            process: 'filepond/transfer',
             revert:  'filepond/revert',
-            restore: 'filepond/restore/',
-            load:    'filepond/load/',
-            fetch:   'filepond/fetch/'
+            load:    'filepond/load/'
         }
     });
     // Turn a file input into a file pond
     var pond = FilePond.create(document.querySelector('input[type="file"]'));
-
-// attributes have been set to pond options
-console.log(pond.name);  // 'filepond'
-console.log(pond.maxFiles); // 10
-console.log(pond.required); // true
     </script>
 </body>
 </html>

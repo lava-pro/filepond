@@ -18,7 +18,7 @@ class FilepondController extends Controller
      * @param  Request $request
      * @return Response
      */
-    public function upload(Request $request)
+    public function transfer(Request $request)
     {
         $field = Filepond::getField();
 
@@ -36,7 +36,7 @@ class FilepondController extends Controller
 
     /**
      * Method:DELETE
-     * Reverting the upload
+     * Reverting the transfer
      *
      * @return Response
      */
@@ -53,7 +53,7 @@ class FilepondController extends Controller
      * Method:GET
      * Loads already uploaded server files
      *
-     * @param  string $id File id string
+     * @param  string $id File transfer key
      * @return Response
      */
     public function load($id = null)
@@ -64,30 +64,6 @@ class FilepondController extends Controller
             ]);
         }
         return response('', 404);
-    }
-
-    /**
-     * Method:GET
-     * Loads files located on remote servers
-     *
-     * @param  string $id File id string
-     * @return mixed
-     */
-    public function fetch($id = null)
-    {
-        return '';
-    }
-
-    /**
-     * Method:GET
-     * Restores temporary server files
-     *
-     * @param  string $id File id string
-     * @return mixed
-     */
-    public function restore($id = null)
-    {
-        return '';
     }
 
 }

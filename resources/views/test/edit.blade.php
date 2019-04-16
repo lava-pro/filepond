@@ -61,11 +61,9 @@
         imageTransformVariantsOriginalName: '',
         // upload to this server end point
         server: {
-            process: '/filepond/upload',
+            process: '/filepond/transfer',
             revert:  '/filepond/revert',
-            restore: '/filepond/restore/',
-            load:    '/filepond/load/',
-            fetch:   '/filepond/fetch/'
+            load:    '/filepond/load/'
         }
     });
     // Turn a file input into a file pond
